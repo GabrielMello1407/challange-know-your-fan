@@ -1,0 +1,95 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id             Int              @id @default(autoincrement())
+  name           String?
+  email          String?          @unique
+  password       String?
+  address        String?
+  cpf            String?          @unique
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  isActive       Boolean          @default(true)
+  emailConfirmed Boolean          @default(false)
+  emailToken     String?          @unique
+  photo          String           @default("public/uploads/avatars/default-avatar.png")
+  interests      Interest[]
+  activities     Activity[]
+  events         Event[]
+  purchases      Purchase[]
+  documents      Document[]
+  socialAccounts SocialAccount[]
+  esportsLinks   EsportsProfile[]
+}
+
+model Interest {
+  id     String @id @default(cuid())
+  name   String
+  user   User   @relation(fields: [userId], references: [id])
+  userId Int
+}
+
+model Activity {
+  id     String   @id @default(cuid())
+  name   String
+  date   DateTime
+  user   User     @relation(fields: [userId], references: [id])
+  userId Int
+}
+
+model Event {
+  id     String   @id @default(cuid())
+  name   String
+  date   DateTime
+  user   User     @relation(fields: [userId], references: [id])
+  userId Int
+}
+
+model Purchase {
+  id     String   @id @default(cuid())
+  item   String
+  amount Float
+  date   DateTime
+  user   User     @relation(fields: [userId], references: [id])
+  userId Int
+}
+
+model Document {
+  id        String  @id @default(cuid())
+  url       String
+  type      String
+  validated Boolean @default(false)
+  user      User    @relation(fields: [userId], references: [id])
+  userId    Int
+}
+
+model SocialAccount {
+  id        String @id @default(cuid())
+  provider  String
+  accountId String
+  username  String
+  user      User   @relation(fields: [userId], references: [id])
+  userId    Int
+}
+
+model EsportsProfile {
+  id        String  @id @default(cuid())
+  url       String
+  validated Boolean @default(false)
+  user      User    @relation(fields: [userId], references: [id])
+  userId    Int
+}
