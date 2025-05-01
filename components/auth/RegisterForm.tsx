@@ -5,6 +5,7 @@ import { useState, useRef } from 'react';
 import { toast } from 'react-hot-toast';
 import { Input } from '../ui/input';
 import { Button } from '../ui/button';
+import { useRouter } from 'next/navigation';
 
 const initialState = {
   name: '',
@@ -22,6 +23,7 @@ export default function RegisterForm() {
   const [photo, setPhoto] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const router = useRouter();
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -83,6 +85,7 @@ export default function RegisterForm() {
       toast.success(
         data.message || 'Cadastro realizado! Verifique seu e-mail.',
       );
+      router.push('/');
       setForm(initialState);
       setPhoto(null);
       setPreview(null);

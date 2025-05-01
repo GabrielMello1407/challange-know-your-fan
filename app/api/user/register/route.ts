@@ -7,6 +7,7 @@ import { sendMail } from '@/lib/mailer';
 import prismadb from '@/lib/prismadb';
 import path from 'path';
 import { mkdir, writeFile } from 'fs/promises';
+import Busboy from 'busboy';
 
 const registerSchema = z.object({
   name: z.string(),
@@ -17,65 +18,123 @@ const registerSchema = z.object({
 });
 
 export async function POST(req: NextRequest) {
-  const data = await req.json();
-  const parsed = registerSchema.safeParse(data);
-  if (!parsed.success) {
-    return NextResponse.json({ error: parsed.error.errors }, { status: 400 });
-  }
-  const { name, email, password, address, cpf } = parsed.data;
-  const existing = await prismadb.user.findUnique({ where: { email } });
-  if (existing) {
-    return NextResponse.json(
-      { error: 'E-mail já cadastrado.' },
-      { status: 400 },
-    );
-  }
-  const hashed = await bcrypt.hash(password, 10);
-  const token = crypto.randomBytes(32).toString('hex');
-
-  let photoPath = '/uploads/avatars/avatar-default.png';
-  // Next.js API routes do not parse multipart/form-data by default.
-  // If you expect file uploads, you need to parse FormData manually or use a library.
-  // For now, safely check for req.body and file property.
-  const file = (req as any).body?.file;
-  if (file && file.size > 0) {
-    const ext = path.extname(file.name).toLowerCase();
-    if (ext !== '.jpg' && ext !== '.jpeg' && ext !== '.png') {
+  try {
+    const contentType = req.headers.get('content-type');
+    if (!contentType || !contentType.includes('multipart/form-data')) {
       return NextResponse.json(
-        { error: 'Formato de imagem não suportado. Envie JPG ou PNG.' },
+        { error: 'Requisição deve ser multipart/form-data' },
         { status: 400 },
       );
     }
-    const buffer = Buffer.from(await file.arrayBuffer());
-    const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'avatars');
-    await mkdir(uploadDir, { recursive: true });
-    const fileName = `${Date.now()}-${Math.random()
-      .toString(36)
-      .substring(2, 8)}${ext}`;
-    const filePath = path.join(uploadDir, fileName);
-    await writeFile(filePath, buffer);
-    photoPath = `/uploads/avatars/${fileName}`;
-  }
 
-  const createdUser = await prismadb.user.create({
-    data: {
-      name,
-      email,
-      password: hashed,
-      address,
-      cpf,
-      isActive: false,
-      emailConfirmed: false,
-      emailToken: token,
-      photo: photoPath,
-    },
-  });
-  const confirmUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/api/user/confirm?token=${token}`;
-  await sendMail({
-    to: email,
-    subject: 'Confirme seu e-mail - FURIA KYF',
-    html: `
-      <!DOCTYPE html>
+    const busboy = Busboy({ headers: { 'content-type': contentType } });
+    const fields: Record<string, string> = {};
+    let photoPath = '/uploads/avatars/avatar-default.png';
+    let fileProcessed = false;
+
+    // Promessa pra processar o stream do busboy
+    await new Promise<void>((resolve, reject) => {
+      busboy.on('field', (name, value) => {
+        fields[name] = value;
+      });
+
+      busboy.on('file', (name, file, info) => {
+        if (name !== 'photo') return; // Só processa o campo 'photo'
+        if (fileProcessed) return; // Evita processar múltiplos arquivos
+        fileProcessed = true;
+
+        const ext = path.extname(info.filename || '').toLowerCase();
+        if (ext !== '.jpg' && ext !== '.jpeg' && ext !== '.png') {
+          file.resume(); // Descarta o stream
+          reject(
+            new Error('Formato de imagem não suportado. Envie JPG ou PNG.'),
+          );
+          return;
+        }
+
+        const chunks: Buffer[] = [];
+        file.on('data', (chunk: Buffer) => chunks.push(chunk));
+        file.on('end', async () => {
+          const buffer = Buffer.concat(chunks);
+          const uploadDir = path.join(
+            process.cwd(),
+            'public',
+            'uploads',
+            'avatars',
+          );
+          await mkdir(uploadDir, { recursive: true });
+          const fileName = `${Date.now()}-${Math.random()
+            .toString(36)
+            .substring(2, 8)}${ext}`;
+          const filePath = path.join(uploadDir, fileName);
+          await writeFile(filePath, buffer);
+          photoPath = `/uploads/avatars/${fileName}`;
+        });
+      });
+
+      busboy.on('finish', () => resolve());
+      busboy.on('error', (err: Error) => reject(err));
+
+      // Conecta o ReadableStream do req ao busboy
+      req.body
+        ?.pipeTo(
+          new WritableStream({
+            write(chunk) {
+              busboy.write(chunk);
+            },
+            close() {
+              busboy.end();
+            },
+          }),
+        )
+        .catch(reject);
+    });
+
+    const data = {
+      name: fields.name || '',
+      email: fields.email || '',
+      password: fields.password || '',
+      address: fields.address || '',
+      cpf: fields.cpf || '',
+    };
+
+    const parsed = registerSchema.safeParse(data);
+    if (!parsed.success) {
+      return NextResponse.json({ error: parsed.error.errors }, { status: 400 });
+    }
+
+    const { name, email, password, address, cpf } = parsed.data;
+
+    const existing = await prismadb.user.findUnique({ where: { email } });
+    if (existing) {
+      return NextResponse.json(
+        { error: 'E-mail já cadastrado.' },
+        { status: 400 },
+      );
+    }
+
+    const hashed = await bcrypt.hash(password, 10);
+    const token = crypto.randomBytes(32).toString('hex');
+
+    const createdUser = await prismadb.user.create({
+      data: {
+        name,
+        email,
+        password: hashed,
+        address,
+        cpf,
+        isActive: false,
+        emailConfirmed: false,
+        emailToken: token,
+        photo: photoPath,
+      },
+    });
+
+    const confirmUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/api/user/confirm?token=${token}`;
+    await sendMail({
+      to: email,
+      subject: 'Confirme seu e-mail - FURIA KYF',
+      html: `<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
@@ -112,12 +171,25 @@ export async function POST(req: NextRequest) {
     </div>
   </div>
 </body>
-</html>
-    `,
-  });
-  return NextResponse.json({
-    success: true,
-    message: 'Cadastro realizado! Verifique seu e-mail para confirmar.',
-    userId: createdUser.id,
-  });
+</html>`, // Teu HTML aqui
+    });
+
+    return NextResponse.json({
+      success: true,
+      message: 'Cadastro realizado! Verifique seu e-mail para confirmar.',
+      userId: createdUser.id,
+    });
+  } catch (error) {
+    console.error('Erro no cadastro:', error);
+    return NextResponse.json(
+      { error: 'Deu ruim no servidor, tenta de novo!' },
+      { status: 500 },
+    );
+  }
 }
+
+export const config = {
+  api: {
+    bodyParser: false,
+  },
+};

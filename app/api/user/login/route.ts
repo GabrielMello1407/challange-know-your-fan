@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
 import { z } from 'zod';
 import bcrypt from 'bcryptjs';
+import { SignJWT } from 'jose';
+import prismadb from '@/lib/prismadb';
 
-const prisma = new PrismaClient();
+const SECRET_KEY = new TextEncoder().encode(process.env.JWT_SECRET);
 
 const loginSchema = z.object({
   email: z.string().email(),
@@ -17,7 +18,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: parsed.error.errors }, { status: 400 });
   }
   const { email, password } = parsed.data;
-  const user = await prisma.user.findUnique({ where: { email } });
+  const user = await prismadb.user.findUnique({ where: { email } });
   if (!user) {
     return NextResponse.json(
       { error: 'Usuário não encontrado.' },
@@ -25,10 +26,7 @@ export async function POST(req: NextRequest) {
     );
   }
   if (!user.isActive) {
-    return NextResponse.json(
-      { error: 'Conta desativada. Entre em contato com o suporte.' },
-      { status: 403 },
-    );
+    return NextResponse.json({ error: 'Conta desativada.' }, { status: 403 });
   }
   const valid = await bcrypt.compare(password, user.password!);
   if (!valid) {
@@ -36,13 +34,40 @@ export async function POST(req: NextRequest) {
   }
   if (!user.emailConfirmed) {
     return NextResponse.json(
-      { error: 'Confirme seu e-mail antes de acessar.' },
+      { error: 'Confirme seu e-mail.' },
       { status: 400 },
     );
   }
-  // Retorne apenas dados seguros
-  return NextResponse.json({
+
+  const token = await new SignJWT({
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    photo: user.photo,
+  })
+    .setProtectedHeader({ alg: 'HS256' })
+    .setIssuedAt()
+    .setExpirationTime('1h')
+    .sign(SECRET_KEY);
+
+  const response = NextResponse.json({
     success: true,
-    user: { id: user.id, name: user.name, email: user.email },
+    user: {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      photo: user.photo,
+    },
   });
+  response.cookies.set({
+    name: 'token',
+    value: token,
+    httpOnly: true,
+    path: '/',
+    sameSite: 'lax',
+    secure: false, // Em dev, false; em prod, true
+    maxAge: 60 * 60 * 24 * 7, // 7 dias
+  });
+  console.log('Cookie "token" definido:', token); // Log para verificar
+  return response;
 }

@@ -1,7 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
+
 import { useState } from 'react';
 import { toast } from 'react-hot-toast';
+
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/providers/authContext';
 
 const initialState = {
   email: '',
@@ -11,6 +15,8 @@ const initialState = {
 export default function LoginForm() {
   const [form, setForm] = useState(initialState);
   const [loading, setLoading] = useState(false);
+  const { login } = useAuth();
+  const router = useRouter();
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -33,7 +39,9 @@ export default function LoginForm() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Erro ao fazer login.');
       toast.success('Login realizado com sucesso!');
-      // Redirecionar ou atualizar estado de autenticação aqui
+      console.log('Cookie deve estar setado, chamando login()');
+      await login(); // Atualiza o estado do contexto
+      router.push('/'); // Navega após a atualização
     } catch (err: any) {
       toast.error(err.message);
     } finally {
