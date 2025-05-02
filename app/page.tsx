@@ -194,52 +194,7 @@ export default function Home() {
               3. Conecte suas Redes
             </h3>
             <p className="text-gray-400">
-              Vincule redes sociais e compartilhe seu engajamento com a FURIA.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      <section id="interesses" className="py-20 px-4 max-w-4xl mx-auto">
-        <h2 className="text-3xl md:text-4xl font-bold font-display text-purple-600 mb-8 text-center">
-          Interesses
-        </h2>
-        <div className="grid md:grid-cols-2 gap-8">
-          <div className="flex flex-col items-center justify-center text-center bg-gray-900/80 rounded-xl p-8 border border-purple-800/30 shadow-lg">
-            <svg
-              className="w-10 h-10 text-purple-500 mb-4 animate-pulse"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              viewBox="0 0 24 24"
-            >
-              <path d="M5 13l4 4L19 7" />
-            </svg>
-            <h3 className="text-lg font-semibold text-gray-100 mb-2">
-              Jogos Favoritos
-            </h3>
-            <p className="text-gray-400">
-              Adicione seus jogos e modalidades preferidas para personalizar sua
-              experiência.
-            </p>
-          </div>
-          <div className="flex flex-col items-center justify-center text-center bg-gray-900/80 rounded-xl p-8 border border-purple-800/30 shadow-lg">
-            <svg
-              className="w-10 h-10 text-purple-500 mb-4 animate-glow"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              viewBox="0 0 24 24"
-            >
-              <rect x="4" y="4" width="16" height="16" rx="4" />
-              <path d="M8 8h8v8H8z" />
-            </svg>
-            <h3 className="text-lg font-semibold text-gray-100 mb-2">
-              Compras e Benefícios
-            </h3>
-            <p className="text-gray-400">
-              Registre suas compras e aproveite benefícios exclusivos para
-              membros.
+              Vincule redes sociais e compartilhe seu perfil com a Comunidade.
             </p>
           </div>
         </div>
