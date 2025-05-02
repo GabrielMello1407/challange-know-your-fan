@@ -36,22 +36,10 @@ const Navbar = () => {
         </div>
         <nav className="hidden md:flex items-center gap-8">
           <Link
-            href="#features"
+            href="comunidade"
             className="text-base text-gray-100 font-medium px-2 py-1 rounded-md transition-colors hover:text-purple-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-600"
           >
-            Recursos
-          </Link>
-          <Link
-            href="#how-it-works"
-            className="text-base text-gray-100 font-medium px-2 py-1 rounded-md transition-colors hover:text-purple-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-600"
-          >
-            Como Funciona
-          </Link>
-          <Link
-            href="#testimonials"
-            className="text-base text-gray-100 font-medium px-2 py-1 rounded-md transition-colors hover:text-purple-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-600"
-          >
-            Depoimentos
+            Comunidade
           </Link>
           {user ? (
             <UserAvatarDropdown

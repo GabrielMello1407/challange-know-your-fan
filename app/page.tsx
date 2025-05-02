@@ -204,8 +204,8 @@ export default function Home() {
         <h2 className="text-3xl md:text-4xl font-bold font-display text-purple-600 mb-8 text-center">
           Interesses
         </h2>
-        <div className="grid md:grid-cols-3 gap-8">
-          <div className="flex flex-col items-center bg-gray-900/80 rounded-xl p-8 border border-purple-800/30 shadow-lg">
+        <div className="grid md:grid-cols-2 gap-8">
+          <div className="flex flex-col items-center justify-center text-center bg-gray-900/80 rounded-xl p-8 border border-purple-800/30 shadow-lg">
             <svg
               className="w-10 h-10 text-purple-500 mb-4 animate-pulse"
               fill="none"
@@ -223,26 +223,7 @@ export default function Home() {
               experiência.
             </p>
           </div>
-          <div className="flex flex-col items-center bg-gray-900/80 rounded-xl p-8 border border-purple-800/30 shadow-lg">
-            <svg
-              className="w-10 h-10 text-purple-500 mb-4 animate-bounce"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              viewBox="0 0 24 24"
-            >
-              <circle cx="12" cy="12" r="10" />
-              <path d="M8 12l2 2 4-4" />
-            </svg>
-            <h3 className="text-lg font-semibold text-gray-100 mb-2">
-              Eventos e Atividades
-            </h3>
-            <p className="text-gray-400">
-              Participe de eventos, campeonatos e atividades exclusivas para
-              fãs.
-            </p>
-          </div>
-          <div className="flex flex-col items-center bg-gray-900/80 rounded-xl p-8 border border-purple-800/30 shadow-lg">
+          <div className="flex flex-col items-center justify-center text-center bg-gray-900/80 rounded-xl p-8 border border-purple-800/30 shadow-lg">
             <svg
               className="w-10 h-10 text-purple-500 mb-4 animate-glow"
               fill="none"
