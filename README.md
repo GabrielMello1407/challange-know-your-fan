@@ -97,7 +97,8 @@ npm install
 Configure o banco de dados com Prisma:
 
 ```bash
-npx prisma migrate dev
+npx prisma generate
+npx prisma db push
 ```
 
 Inicie o projeto:
