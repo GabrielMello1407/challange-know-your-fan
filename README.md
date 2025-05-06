@@ -122,14 +122,3 @@ Acesse em: [http://localhost:3000](http://localhost:3000)
 
 ---
 
-## 📌 Próximos Passos
-
-- 🔍 Melhorar a análise de redes sociais com IA para sugestões personalizadas.
-- 🌐 Suporte a múltiplos idiomas.
-- 🔔 Notificações em tempo real na comunidade.
-
----
-
-## 📬 Contato
-
-Para dúvidas ou sugestões: **seu_email@example.com**
